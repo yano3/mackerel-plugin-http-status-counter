@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 	"strings"
 
 	mp "github.com/mackerelio/go-mackerel-plugin-helper"
@@ -71,9 +72,24 @@ var graphdef = map[string](mp.Graphs){
 	},
 }
 
+var graphdef_grouping = map[string](mp.Graphs){
+	"http.status": mp.Graphs{
+		Label: "HTTP Status Codes",
+		Unit:  "integer",
+		Metrics: [](mp.Metrics){
+			mp.Metrics{Name: "http_1xx", Label: "1xx Informational", Diff: true, Stacked: true},
+			mp.Metrics{Name: "http_2xx", Label: "2xx Success", Diff: true, Stacked: true},
+			mp.Metrics{Name: "http_3xx", Label: "3xx Redirection", Diff: true, Stacked: true},
+			mp.Metrics{Name: "http_4xx", Label: "4xx Client Error", Diff: true, Stacked: true},
+			mp.Metrics{Name: "http_5xx", Label: "5xx Server Error", Diff: true, Stacked: true},
+		},
+	},
+}
+
 // HttpStatusCounterPlugin
 type HttpStatusCounterPlugin struct {
-	URI string
+	URI      string
+	Grouping bool
 }
 
 // FetchMetrics interface for mackerelplugin
@@ -91,10 +107,58 @@ func (p HttpStatusCounterPlugin) FetchMetrics() (map[string]interface{}, error) 
 
 	status_codes := strings.Split(strings.TrimSpace(string(body)), "\t")
 
+	if p.Grouping {
+		return p.parseStatsGrouping(status_codes)
+	} else {
+		return p.parseStats(status_codes)
+	}
+}
+
+func (p HttpStatusCounterPlugin) parseStatsGrouping(stats []string) (map[string]interface{}, error) {
 	stat := make(map[string]interface{})
-	for _, status_code := range status_codes {
-		s := strings.Split(status_code, ":")
-		code, count := s[0], s[1]
+
+	http_1xx := 0
+	http_2xx := 0
+	http_3xx := 0
+	http_4xx := 0
+	http_5xx := 0
+
+	for _, d := range stats {
+		s := strings.Split(d, ":")
+		code := s[0]
+		count, _ := strconv.Atoi(s[1])
+
+		switch code[0:1] {
+		case "1":
+			http_1xx += count
+		case "2":
+			http_2xx += count
+		case "3":
+			http_3xx += count
+		case "4":
+			http_4xx += count
+		case "5":
+			http_5xx += count
+		}
+	}
+
+	stat["http_1xx"] = float64(http_1xx)
+	stat["http_2xx"] = float64(http_2xx)
+	stat["http_3xx"] = float64(http_3xx)
+	stat["http_4xx"] = float64(http_4xx)
+	stat["http_5xx"] = float64(http_5xx)
+
+	return stat, nil
+}
+
+func (p HttpStatusCounterPlugin) parseStats(stats []string) (map[string]interface{}, error) {
+	stat := make(map[string]interface{})
+
+	for _, d := range stats {
+		s := strings.Split(d, ":")
+		code := s[0]
+		count, _ := strconv.ParseFloat(s[1], 64)
+
 		stat[code] = count
 	}
 
@@ -103,7 +167,11 @@ func (p HttpStatusCounterPlugin) FetchMetrics() (map[string]interface{}, error) 
 
 // GraphDefinition interface for mackerelplugin
 func (p HttpStatusCounterPlugin) GraphDefinition() map[string](mp.Graphs) {
-	return graphdef
+	if p.Grouping {
+		return graphdef_grouping
+	} else {
+		return graphdef
+	}
 }
 
 func main() {
@@ -111,11 +179,13 @@ func main() {
 	optHost := flag.String("host", "localhost", "Host")
 	optPort := flag.String("port", "80", "Port")
 	optPath := flag.String("path", "/status_count", "Path")
+	optGrouping := flag.Bool("grouping", true, "Group by class")
 	optTempfile := flag.String("tempfile", "", "Temp file name")
 	flag.Parse()
 
 	var httpStatusCounter HttpStatusCounterPlugin
 	httpStatusCounter.URI = fmt.Sprintf("%s://%s:%s%s", *optScheme, *optHost, *optPort, *optPath)
+	httpStatusCounter.Grouping = *optGrouping
 
 	helper := mp.NewMackerelPlugin(httpStatusCounter)
 	if *optTempfile != "" {
