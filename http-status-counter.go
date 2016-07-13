@@ -1,10 +1,12 @@
 package main
 
 import (
+	"bufio"
+	"errors"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"net/http"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -100,12 +102,18 @@ func (p HttpStatusCounterPlugin) FetchMetrics() (map[string]interface{}, error) 
 	}
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	r := bufio.NewReader(resp.Body)
+	line, _, err := r.ReadLine()
 	if err != nil {
 		return nil, err
 	}
 
-	status_codes := strings.Split(strings.TrimSpace(string(body)), "\t")
+	ltsv_pattern := regexp.MustCompile(`\A(?:\d{3}:\d+(\t|\z))+\z`)
+	if !ltsv_pattern.MatchString(string(line)) {
+		return nil, errors.New("cannot get status")
+	}
+
+	status_codes := strings.Split(string(line), "\t")
 
 	if p.Grouping {
 		return p.parseStatsGrouping(status_codes)
