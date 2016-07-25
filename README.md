@@ -6,7 +6,7 @@ Custom metrics plugin for [mackerel-agent](https://github.com/mackerelio/mackere
 ## Synopsis
 
 ```
-mackerel-plugin-http-status-counter [-scheme=<http|https>] [-host=<host>] [-port=<port>] [-grouping=<true|false>] [-tempfile=<tempfile>]
+mackerel-plugin-http-status-counter [-scheme=<http|https>] [-host=<host>] [-port=<port>] [-path=<path>] [-grouping=<true|false>] [-tempfile=<tempfile>]
 ```
 
 ## Requirements
