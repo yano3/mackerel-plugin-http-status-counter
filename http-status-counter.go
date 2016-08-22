@@ -1,14 +1,11 @@
 package main
 
 import (
-	"bufio"
-	"errors"
+	"encoding/json"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"net/http"
-	"regexp"
-	"strconv"
-	"strings"
 
 	mp "github.com/mackerelio/go-mackerel-plugin-helper"
 )
@@ -94,6 +91,10 @@ type HttpStatusCounterPlugin struct {
 	Grouping bool
 }
 
+type HttpStatusCounterOutput struct {
+	Status map[string]int
+}
+
 // FetchMetrics interface for mackerelplugin
 func (p HttpStatusCounterPlugin) FetchMetrics() (map[string]interface{}, error) {
 	resp, err := http.Get(p.URI)
@@ -102,27 +103,25 @@ func (p HttpStatusCounterPlugin) FetchMetrics() (map[string]interface{}, error) 
 	}
 	defer resp.Body.Close()
 
-	r := bufio.NewReader(resp.Body)
-	line, _, err := r.ReadLine()
+	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
 
-	ltsv_pattern := regexp.MustCompile(`\A(?:\d{3}:\d+(\t|\z))+\z`)
-	if !ltsv_pattern.MatchString(string(line)) {
-		return nil, errors.New("cannot get status")
+	var output HttpStatusCounterOutput
+	err = json.Unmarshal(body, &output)
+	if err != nil {
+		return nil, err
 	}
 
-	status_codes := strings.Split(string(line), "\t")
-
 	if p.Grouping {
-		return p.parseStatsGrouping(status_codes)
+		return p.parseStatsGrouping(output)
 	} else {
-		return p.parseStats(status_codes)
+		return p.parseStats(output)
 	}
 }
 
-func (p HttpStatusCounterPlugin) parseStatsGrouping(stats []string) (map[string]interface{}, error) {
+func (p HttpStatusCounterPlugin) parseStatsGrouping(stats HttpStatusCounterOutput) (map[string]interface{}, error) {
 	stat := make(map[string]interface{})
 
 	http_1xx := 0
@@ -131,11 +130,7 @@ func (p HttpStatusCounterPlugin) parseStatsGrouping(stats []string) (map[string]
 	http_4xx := 0
 	http_5xx := 0
 
-	for _, d := range stats {
-		s := strings.Split(d, ":")
-		code := s[0]
-		count, _ := strconv.Atoi(s[1])
-
+	for code, count := range stats.Status {
 		switch code[0:1] {
 		case "1":
 			http_1xx += count
@@ -159,15 +154,11 @@ func (p HttpStatusCounterPlugin) parseStatsGrouping(stats []string) (map[string]
 	return stat, nil
 }
 
-func (p HttpStatusCounterPlugin) parseStats(stats []string) (map[string]interface{}, error) {
+func (p HttpStatusCounterPlugin) parseStats(stats HttpStatusCounterOutput) (map[string]interface{}, error) {
 	stat := make(map[string]interface{})
 
-	for _, d := range stats {
-		s := strings.Split(d, ":")
-		code := s[0]
-		count, _ := strconv.ParseUint(s[1], 10, 64)
-
-		stat[code] = count
+	for code, count := range stats.Status {
+		stat[code] = uint64(count)
 	}
 
 	return stat, nil
