@@ -18,6 +18,13 @@ var graphdef = map[string](mp.Graphs){
 			mp.Metrics{Name: "body_bytes_sent", Label: "Body Bytes Sent", Diff: true, Type: "unit64", Stacked: false},
 		},
 	},
+	"http.avg_request_time": mp.Graphs{
+		Label: "HTTP Average Request Time",
+		Unit:  "float",
+		Metrics: [](mp.Metrics){
+			mp.Metrics{Name: "avg_request_time", Label: "HTTP Average Request Time", Diff: false, Type: "float64", Stacked: false},
+		},
+	},
 }
 
 var graphdef_status = mp.Graphs{
@@ -98,8 +105,9 @@ type HttpStatusCounterPlugin struct {
 }
 
 type HttpStatusCounterOutput struct {
-	Status        map[string]int
-	BodyBytesSent int `json:"body_bytes_sent"`
+	Status             map[string]int
+	BodyBytesSent      int     `json:"body_bytes_sent"`
+	AverageRequestTime float64 `json:"avg_request_time"`
 }
 
 // FetchMetrics interface for mackerelplugin
@@ -130,6 +138,7 @@ func (p HttpStatusCounterPlugin) FetchMetrics() (map[string]interface{}, error) 
 	}
 
 	stat["body_bytes_sent"] = uint64(output.BodyBytesSent)
+	stat["avg_request_time"] = output.AverageRequestTime
 
 	return stat, nil
 }
