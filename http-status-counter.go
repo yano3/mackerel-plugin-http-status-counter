@@ -18,11 +18,12 @@ var graphdef = map[string](mp.Graphs){
 			mp.Metrics{Name: "body_bytes_sent", Label: "Body Bytes Sent", Diff: true, Type: "unit64", Stacked: false},
 		},
 	},
-	"http.avg_request_time": mp.Graphs{
-		Label: "HTTP Average Request Time",
+	"http.latency": mp.Graphs{
+		Label: "HTTP Latency",
 		Unit:  "float",
 		Metrics: [](mp.Metrics){
 			mp.Metrics{Name: "avg_request_time", Label: "HTTP Average Request Time", Diff: false, Type: "float64", Stacked: false},
+			mp.Metrics{Name: "avg_upstream_response_time", Label: "HTTP Average Upstream Response Time", Diff: false, Type: "float64", Stacked: false},
 		},
 	},
 }
@@ -105,9 +106,10 @@ type HttpStatusCounterPlugin struct {
 }
 
 type HttpStatusCounterOutput struct {
-	Status             map[string]int
-	BodyBytesSent      int     `json:"body_bytes_sent"`
-	AverageRequestTime float64 `json:"avg_request_time"`
+	Status                      map[string]int
+	BodyBytesSent               int     `json:"body_bytes_sent"`
+	AverageRequestTime          float64 `json:"avg_request_time"`
+	AverageUpstreamResponseTime float64 `json:"avg_upstream_response_time"`
 }
 
 // FetchMetrics interface for mackerelplugin
@@ -139,6 +141,7 @@ func (p HttpStatusCounterPlugin) FetchMetrics() (map[string]interface{}, error) 
 
 	stat["body_bytes_sent"] = uint64(output.BodyBytesSent)
 	stat["avg_request_time"] = output.AverageRequestTime
+	stat["avg_upstream_response_time"] = output.AverageUpstreamResponseTime
 
 	return stat, nil
 }
