@@ -7,7 +7,7 @@ build:
         name: go get
         code: |
           go get -t
-    - golint
+    - wercker/golint
     - script:
         name: go build
         code: |
