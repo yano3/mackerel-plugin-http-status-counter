@@ -99,13 +99,13 @@ var graphdef_status_grouping = mp.Graphs{
 	},
 }
 
-// HttpStatusCounterPlugin
-type HttpStatusCounterPlugin struct {
+// HTTPStatusCounterPlugin
+type HTTPStatusCounterPlugin struct {
 	URI      string
 	Grouping bool
 }
 
-type HttpStatusCounterOutput struct {
+type HTTPStatusCounterOutput struct {
 	Status                      map[string]int
 	BodyBytesSent               int     `json:"body_bytes_sent"`
 	AverageRequestTime          float64 `json:"avg_request_time"`
@@ -113,7 +113,7 @@ type HttpStatusCounterOutput struct {
 }
 
 // FetchMetrics interface for mackerelplugin
-func (p HttpStatusCounterPlugin) FetchMetrics() (map[string]interface{}, error) {
+func (p HTTPStatusCounterPlugin) FetchMetrics() (map[string]interface{}, error) {
 	resp, err := http.Get(p.URI)
 	if err != nil {
 		return nil, err
@@ -125,7 +125,7 @@ func (p HttpStatusCounterPlugin) FetchMetrics() (map[string]interface{}, error) 
 		return nil, err
 	}
 
-	var output HttpStatusCounterOutput
+	var output HTTPStatusCounterOutput
 	err = json.Unmarshal(body, &output)
 	if err != nil {
 		return nil, err
@@ -146,7 +146,7 @@ func (p HttpStatusCounterPlugin) FetchMetrics() (map[string]interface{}, error) 
 	return stat, nil
 }
 
-func (p HttpStatusCounterPlugin) parseStatusGrouping(stats HttpStatusCounterOutput) map[string]interface{} {
+func (p HTTPStatusCounterPlugin) parseStatusGrouping(stats HTTPStatusCounterOutput) map[string]interface{} {
 	stat := make(map[string]interface{})
 
 	http_1xx := 0
@@ -179,7 +179,7 @@ func (p HttpStatusCounterPlugin) parseStatusGrouping(stats HttpStatusCounterOutp
 	return stat
 }
 
-func (p HttpStatusCounterPlugin) parseStatus(stats HttpStatusCounterOutput) map[string]interface{} {
+func (p HTTPStatusCounterPlugin) parseStatus(stats HTTPStatusCounterOutput) map[string]interface{} {
 	stat := make(map[string]interface{})
 
 	for code, count := range stats.Status {
@@ -190,7 +190,7 @@ func (p HttpStatusCounterPlugin) parseStatus(stats HttpStatusCounterOutput) map[
 }
 
 // GraphDefinition interface for mackerelplugin
-func (p HttpStatusCounterPlugin) GraphDefinition() map[string](mp.Graphs) {
+func (p HTTPStatusCounterPlugin) GraphDefinition() map[string](mp.Graphs) {
 	if p.Grouping {
 		graphdef["http.status"] = graphdef_status_grouping
 	} else {
@@ -208,7 +208,7 @@ func main() {
 	optTempfile := flag.String("tempfile", "", "Temp file name")
 	flag.Parse()
 
-	var httpStatusCounter HttpStatusCounterPlugin
+	var httpStatusCounter HTTPStatusCounterPlugin
 	httpStatusCounter.URI = fmt.Sprintf("%s://%s:%s%s", *optScheme, *optHost, *optPort, *optPath)
 	httpStatusCounter.Grouping = *optGrouping
 
