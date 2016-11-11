@@ -28,7 +28,7 @@ var graphdef = map[string](mp.Graphs){
 	},
 }
 
-var graphdef_status = mp.Graphs{
+var graphdefStatus = mp.Graphs{
 	Label: "HTTP Status Codes",
 	Unit:  "integer",
 	Metrics: [](mp.Metrics){
@@ -87,7 +87,7 @@ var graphdef_status = mp.Graphs{
 	},
 }
 
-var graphdef_status_grouping = mp.Graphs{
+var graphdefStatusGrouping = mp.Graphs{
 	Label: "HTTP Status Codes",
 	Unit:  "integer",
 	Metrics: [](mp.Metrics){
@@ -192,9 +192,9 @@ func (p HTTPStatusCounterPlugin) parseStatus(stats HTTPStatusCounterOutput) map[
 // GraphDefinition interface for mackerelplugin
 func (p HTTPStatusCounterPlugin) GraphDefinition() map[string](mp.Graphs) {
 	if p.Grouping {
-		graphdef["http.status"] = graphdef_status_grouping
+		graphdef["http.status"] = graphdefStatusGrouping
 	} else {
-		graphdef["http.status"] = graphdef_status
+		graphdef["http.status"] = graphdefStatus
 	}
 	return graphdef
 }
