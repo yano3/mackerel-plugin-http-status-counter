@@ -99,12 +99,13 @@ var graphdefStatusGrouping = mp.Graphs{
 	},
 }
 
-// HTTPStatusCounterPlugin
+// HTTPStatusCounterPlugin mackerel plugin for http-status-counter
 type HTTPStatusCounterPlugin struct {
 	URI      string
 	Grouping bool
 }
 
+// HTTPStatusCounterOutput http-status-counter metrics
 type HTTPStatusCounterOutput struct {
 	Status                      map[string]int
 	BodyBytesSent               int     `json:"body_bytes_sent"`
