@@ -5,7 +5,7 @@ import (
 )
 
 func TestGraphDefinition(t *testing.T) {
-	var httpStatusCounter HttpStatusCounterPlugin
+	var httpStatusCounter HTTPStatusCounterPlugin
 
 	graphdef := httpStatusCounter.GraphDefinition()
 	if len(graphdef) != 3 {

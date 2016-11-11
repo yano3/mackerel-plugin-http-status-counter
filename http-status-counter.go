@@ -28,7 +28,7 @@ var graphdef = map[string](mp.Graphs){
 	},
 }
 
-var graphdef_status = mp.Graphs{
+var graphdefStatus = mp.Graphs{
 	Label: "HTTP Status Codes",
 	Unit:  "integer",
 	Metrics: [](mp.Metrics){
@@ -87,7 +87,7 @@ var graphdef_status = mp.Graphs{
 	},
 }
 
-var graphdef_status_grouping = mp.Graphs{
+var graphdefStatusGrouping = mp.Graphs{
 	Label: "HTTP Status Codes",
 	Unit:  "integer",
 	Metrics: [](mp.Metrics){
@@ -99,13 +99,14 @@ var graphdef_status_grouping = mp.Graphs{
 	},
 }
 
-// HttpStatusCounterPlugin
-type HttpStatusCounterPlugin struct {
+// HTTPStatusCounterPlugin mackerel plugin for http-status-counter
+type HTTPStatusCounterPlugin struct {
 	URI      string
 	Grouping bool
 }
 
-type HttpStatusCounterOutput struct {
+// HTTPStatusCounterOutput http-status-counter metrics
+type HTTPStatusCounterOutput struct {
 	Status                      map[string]int
 	BodyBytesSent               int     `json:"body_bytes_sent"`
 	AverageRequestTime          float64 `json:"avg_request_time"`
@@ -113,7 +114,7 @@ type HttpStatusCounterOutput struct {
 }
 
 // FetchMetrics interface for mackerelplugin
-func (p HttpStatusCounterPlugin) FetchMetrics() (map[string]interface{}, error) {
+func (p HTTPStatusCounterPlugin) FetchMetrics() (map[string]interface{}, error) {
 	resp, err := http.Get(p.URI)
 	if err != nil {
 		return nil, err
@@ -125,7 +126,7 @@ func (p HttpStatusCounterPlugin) FetchMetrics() (map[string]interface{}, error) 
 		return nil, err
 	}
 
-	var output HttpStatusCounterOutput
+	var output HTTPStatusCounterOutput
 	err = json.Unmarshal(body, &output)
 	if err != nil {
 		return nil, err
@@ -146,40 +147,40 @@ func (p HttpStatusCounterPlugin) FetchMetrics() (map[string]interface{}, error) 
 	return stat, nil
 }
 
-func (p HttpStatusCounterPlugin) parseStatusGrouping(stats HttpStatusCounterOutput) map[string]interface{} {
+func (p HTTPStatusCounterPlugin) parseStatusGrouping(stats HTTPStatusCounterOutput) map[string]interface{} {
 	stat := make(map[string]interface{})
 
-	http_1xx := 0
-	http_2xx := 0
-	http_3xx := 0
-	http_4xx := 0
-	http_5xx := 0
+	http1xx := 0
+	http2xx := 0
+	http3xx := 0
+	http4xx := 0
+	http5xx := 0
 
 	for code, count := range stats.Status {
 		switch code[0:1] {
 		case "1":
-			http_1xx += count
+			http1xx += count
 		case "2":
-			http_2xx += count
+			http2xx += count
 		case "3":
-			http_3xx += count
+			http3xx += count
 		case "4":
-			http_4xx += count
+			http4xx += count
 		case "5":
-			http_5xx += count
+			http5xx += count
 		}
 	}
 
-	stat["http_1xx"] = uint64(http_1xx)
-	stat["http_2xx"] = uint64(http_2xx)
-	stat["http_3xx"] = uint64(http_3xx)
-	stat["http_4xx"] = uint64(http_4xx)
-	stat["http_5xx"] = uint64(http_5xx)
+	stat["http_1xx"] = uint64(http1xx)
+	stat["http_2xx"] = uint64(http2xx)
+	stat["http_3xx"] = uint64(http3xx)
+	stat["http_4xx"] = uint64(http4xx)
+	stat["http_5xx"] = uint64(http5xx)
 
 	return stat
 }
 
-func (p HttpStatusCounterPlugin) parseStatus(stats HttpStatusCounterOutput) map[string]interface{} {
+func (p HTTPStatusCounterPlugin) parseStatus(stats HTTPStatusCounterOutput) map[string]interface{} {
 	stat := make(map[string]interface{})
 
 	for code, count := range stats.Status {
@@ -190,11 +191,11 @@ func (p HttpStatusCounterPlugin) parseStatus(stats HttpStatusCounterOutput) map[
 }
 
 // GraphDefinition interface for mackerelplugin
-func (p HttpStatusCounterPlugin) GraphDefinition() map[string](mp.Graphs) {
+func (p HTTPStatusCounterPlugin) GraphDefinition() map[string](mp.Graphs) {
 	if p.Grouping {
-		graphdef["http.status"] = graphdef_status_grouping
+		graphdef["http.status"] = graphdefStatusGrouping
 	} else {
-		graphdef["http.status"] = graphdef_status
+		graphdef["http.status"] = graphdefStatus
 	}
 	return graphdef
 }
@@ -208,7 +209,7 @@ func main() {
 	optTempfile := flag.String("tempfile", "", "Temp file name")
 	flag.Parse()
 
-	var httpStatusCounter HttpStatusCounterPlugin
+	var httpStatusCounter HTTPStatusCounterPlugin
 	httpStatusCounter.URI = fmt.Sprintf("%s://%s:%s%s", *optScheme, *optHost, *optPort, *optPath)
 	httpStatusCounter.Grouping = *optGrouping
 
