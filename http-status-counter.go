@@ -149,32 +149,32 @@ func (p HTTPStatusCounterPlugin) FetchMetrics() (map[string]interface{}, error) 
 func (p HTTPStatusCounterPlugin) parseStatusGrouping(stats HTTPStatusCounterOutput) map[string]interface{} {
 	stat := make(map[string]interface{})
 
-	http_1xx := 0
-	http_2xx := 0
-	http_3xx := 0
-	http_4xx := 0
-	http_5xx := 0
+	http1xx := 0
+	http2xx := 0
+	http3xx := 0
+	http4xx := 0
+	http5xx := 0
 
 	for code, count := range stats.Status {
 		switch code[0:1] {
 		case "1":
-			http_1xx += count
+			http1xx += count
 		case "2":
-			http_2xx += count
+			http2xx += count
 		case "3":
-			http_3xx += count
+			http3xx += count
 		case "4":
-			http_4xx += count
+			http4xx += count
 		case "5":
-			http_5xx += count
+			http5xx += count
 		}
 	}
 
-	stat["http_1xx"] = uint64(http_1xx)
-	stat["http_2xx"] = uint64(http_2xx)
-	stat["http_3xx"] = uint64(http_3xx)
-	stat["http_4xx"] = uint64(http_4xx)
-	stat["http_5xx"] = uint64(http_5xx)
+	stat["http_1xx"] = uint64(http1xx)
+	stat["http_2xx"] = uint64(http2xx)
+	stat["http_3xx"] = uint64(http3xx)
+	stat["http_4xx"] = uint64(http4xx)
+	stat["http_5xx"] = uint64(http5xx)
 
 	return stat
 }
