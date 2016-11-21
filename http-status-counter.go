@@ -214,10 +214,6 @@ func main() {
 	httpStatusCounter.Grouping = *optGrouping
 
 	helper := mp.NewMackerelPlugin(httpStatusCounter)
-	if *optTempfile != "" {
-		helper.Tempfile = *optTempfile
-	} else {
-		helper.Tempfile = fmt.Sprintf("/tmp/mackerel-plugin-http-status-counter")
-	}
+	helper.Tempfile = *optTempfile
 	helper.Run()
 }
