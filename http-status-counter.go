@@ -108,7 +108,7 @@ type HTTPStatusCounterPlugin struct {
 // HTTPStatusCounterOutput http-status-counter metrics
 type HTTPStatusCounterOutput struct {
 	Status                      map[string]int
-	BodyBytesSent               int     `json:"body_bytes_sent"`
+	BodyBytesSent               uint64  `json:"body_bytes_sent"`
 	AverageRequestTime          float64 `json:"avg_request_time"`
 	AverageUpstreamResponseTime float64 `json:"avg_upstream_response_time"`
 }
