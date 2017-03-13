@@ -107,7 +107,7 @@ type HTTPStatusCounterPlugin struct {
 
 // HTTPStatusCounterOutput http-status-counter metrics
 type HTTPStatusCounterOutput struct {
-	Status                      map[string]int
+	Status                      map[string]uint64
 	BodyBytesSent               uint64  `json:"body_bytes_sent"`
 	AverageRequestTime          float64 `json:"avg_request_time"`
 	AverageUpstreamResponseTime float64 `json:"avg_upstream_response_time"`
@@ -140,7 +140,7 @@ func (p HTTPStatusCounterPlugin) FetchMetrics() (map[string]interface{}, error) 
 		stat = p.parseStatus(output)
 	}
 
-	stat["body_bytes_sent"] = uint64(output.BodyBytesSent)
+	stat["body_bytes_sent"] = output.BodyBytesSent
 	stat["avg_request_time"] = output.AverageRequestTime
 	stat["avg_upstream_response_time"] = output.AverageUpstreamResponseTime
 
@@ -150,11 +150,11 @@ func (p HTTPStatusCounterPlugin) FetchMetrics() (map[string]interface{}, error) 
 func (p HTTPStatusCounterPlugin) parseStatusGrouping(stats HTTPStatusCounterOutput) map[string]interface{} {
 	stat := make(map[string]interface{})
 
-	http1xx := 0
-	http2xx := 0
-	http3xx := 0
-	http4xx := 0
-	http5xx := 0
+	http1xx := uint64(0)
+	http2xx := uint64(0)
+	http3xx := uint64(0)
+	http4xx := uint64(0)
+	http5xx := uint64(0)
 
 	for code, count := range stats.Status {
 		switch code[0:1] {
@@ -171,11 +171,11 @@ func (p HTTPStatusCounterPlugin) parseStatusGrouping(stats HTTPStatusCounterOutp
 		}
 	}
 
-	stat["http_1xx"] = uint64(http1xx)
-	stat["http_2xx"] = uint64(http2xx)
-	stat["http_3xx"] = uint64(http3xx)
-	stat["http_4xx"] = uint64(http4xx)
-	stat["http_5xx"] = uint64(http5xx)
+	stat["http_1xx"] = http1xx
+	stat["http_2xx"] = http2xx
+	stat["http_3xx"] = http3xx
+	stat["http_4xx"] = http4xx
+	stat["http_5xx"] = http5xx
 
 	return stat
 }
