@@ -140,7 +140,7 @@ func (p HTTPStatusCounterPlugin) FetchMetrics() (map[string]interface{}, error) 
 		stat = p.parseStatus(output)
 	}
 
-	stat["body_bytes_sent"] = uint64(output.BodyBytesSent)
+	stat["body_bytes_sent"] = output.BodyBytesSent
 	stat["avg_request_time"] = output.AverageRequestTime
 	stat["avg_upstream_response_time"] = output.AverageUpstreamResponseTime
 
