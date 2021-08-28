@@ -1,1 +1,2 @@
-dist/
+/mackerel-plugin-http-status-counter
+/dist/
